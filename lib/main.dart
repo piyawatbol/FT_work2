@@ -1,7 +1,11 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_constructors_in_immutables, unnecessary_import
+// ignore_for_file: prefer_const_constructors, prefer_const_constructors_in_immutables, unnecessary_import, unused_local_variable
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:work2/models/transactions.dart';
+import 'package:work2/provider/transaction_provider.dart';
 import 'package:work2/screen/page2.dart';
 
 void main() {
@@ -13,7 +17,14 @@ class Myapp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: Mypage());
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) {
+          return TransactionProvider();
+        })
+      ],
+      child: MaterialApp(debugShowCheckedModeBanner: false, home: Mypage()),
+    );
   }
 }
 
@@ -29,7 +40,7 @@ class _MypageState extends State<Mypage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("เเอพบัญขี"),
+        title: Text("เเอพบัญชี"),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
@@ -41,23 +52,42 @@ class _MypageState extends State<Mypage> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: 4,
-        itemBuilder: (BuildContext context, int index) {
-          return Card(
-            elevation: 2,
-            margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.blue,
-                child: FittedBox(
-                  
+      body: Consumer(
+        builder: (context, TransactionProvider provider, Widget? child) {
+          var count = provider.transactions.length;
+          if (count <= 0) {
+            return Center(
+              child: Text(
+                'ไม่พบข้อมูล',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-                ),
-              title: Text("เมนู"),
-              subtitle: Text('100'),
-            ),
-          );
+              ),
+            );
+          } else {
+            return ListView.builder(
+              itemCount: provider.transactions.length,
+              itemBuilder: (BuildContext context, int index) {
+                Transactions data = provider.transactions[index];
+                return Card(
+                  elevation: 2,
+                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue,
+                      child: FittedBox(
+                        child: Text(data.amout.toString()),
+                      ),
+                    ),
+                    title: Text(data.title),
+                    subtitle: Text(DateFormat('dd/MM/yyyy').format(data.date)),
+                  ),
+                );
+              },
+            );
+          }
         },
       ),
     );
